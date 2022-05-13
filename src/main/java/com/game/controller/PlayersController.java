@@ -55,6 +55,12 @@ public class PlayersController {
         return new ResponseEntity<List<Player>>(list, HttpStatus.OK);
     }
 
+     @GetMapping("")
+    @JsonView()
+    public ResponseEntity<Page<Player>> getAllPlayers(
+            @PageableDefault(page = 0, size = 5, sort = "id",direction = Sort.Direction.ASC)Pageable pageable){
+        Page<Player> players = this.playerRepository.findAll(pageable);
+        return ResponseEntity.ok(players);
 
 
 //    @GetMapping("")
