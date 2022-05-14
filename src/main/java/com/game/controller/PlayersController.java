@@ -6,11 +6,17 @@ import com.game.service.PlayersService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 @RequestMapping(path = "/rest/players", produces = "application/json")
@@ -26,82 +32,44 @@ public class PlayersController {
         this.playersService = playersService;
     }
 
-//    @Autowired
-//    public PlayersController(PlayerRepository playerRepository) {
-//        this.playerRepository = playerRepository;
-//    }
-
-//    @GetMapping("")
-//    public Iterable<Player> allPlayers(){
-//        PageRequest pageRequest = PageRequest.of(0,3, Sort.by("name").ascending());
-//        return playerRepository.findAll(pageRequest).getContent();
-//    }
-
-
-
-
-//    @GetMapping("")
-//    public List<Player> list() {
-//        return playersService.getAllPlayers();
-//    }
-
-    // Bad request to GET /rest/players?&pageNumber=0&pageSize=3&order=NAME
     @GetMapping("")
     public ResponseEntity<List<Player>> getAllPlayers(
             @RequestParam(required = false, defaultValue = "0") Integer pageNo,
-            @RequestParam(defaultValue = "3") Integer pageSize,
-            @RequestParam(defaultValue = "id", required = false) String sortBy) {
+            @RequestParam(required = false, defaultValue = "3") Integer pageSize,
+            @RequestParam(defaultValue = "id",required = false) String sortBy,
+            HttpServletRequest request) {
+
+        String order;
+
+//      "&pageNumber=0&pageSize=3&order=EXPERIENCE";
+        String uri = request.getQueryString();
+        System.out.println(uri);
+
+        Pattern pat = Pattern.compile("([^&=]+)=([^&]*)");
+        Matcher matcher = pat.matcher(uri);
+        Map<String, String> map = new HashMap<>();
+        while (matcher.find()) {
+            map.put(matcher.group(1), matcher.group(2));
+        }
+        order = map.get("order");
+        System.out.println(map.get("order"));
+
+        if (sortBy == null || order.equals("ID")) {
+            sortBy = "id";
+        }
+        if (order.equals("NAME")) {
+            sortBy = "name";
+        }
+        if (order.equals("EXPERIENCE")) {
+            sortBy = "experience";
+        }
+        if (order.equals("BIRTHDAY")) {
+            sortBy = "birthday";
+        }
+
         List<Player> list = playersService.getAllPlayers(pageNo, pageSize, sortBy);
-        return new ResponseEntity<List<Player>>(list, HttpStatus.OK);
+        return new ResponseEntity<List<Player>>(list,  HttpStatus.OK);
     }
-
-     @GetMapping("")
-    @JsonView()
-    public ResponseEntity<Page<Player>> getAllPlayers(
-            @PageableDefault(page = 0, size = 5, sort = "id",direction = Sort.Direction.ASC)Pageable pageable){
-        Page<Player> players = this.playerRepository.findAll(pageable);
-        return ResponseEntity.ok(players);
-
-
-//    @GetMapping("")
-//    public ResponseEntity<List<Player>> getAllPlayers(
-//            @RequestParam(required = false, defaultValue = "0") Integer pageNo,
-//            @RequestParam(defaultValue = "3") Integer pageSize,
-//            @RequestParam (defaultValue = "ASC")Sort.Direction direction,
-//            @RequestParam (value = "id") String[] playerOrder) {
-//        playerOrder = playersService.playerOrder();
-//        List<Player> list = playersService.getAllPlayers(pageNo, pageSize, direction, playerOrder);
-//        return new ResponseEntity<List<Player>>(list,  HttpStatus.OK);
-//    }
-
-
-//    @GetMapping("")
-//    public ResponseEntity<Page<Player>> getAllPlayers(
-//            @PageableDefault(sort = {"id"}, value = 10)
-//            @SortDefault.SortDefaults({
-//                    @SortDefault(sort = "id", direction = Sort.Direction.DESC)
-//            }) Pageable pageable) {
-//        Page<Player> players = playersService.getAllPlayers(pageable);
-//        return new ResponseEntity<Page<Player>>(players, HttpStatus.OK);
-//    }
-
-
-//    @GetMapping("")
-//    public ResponseEntity<List<Player>> getAllPlayers(@RequestParam(required = false) String name) {
-//        try {
-//            List<Player> players = new ArrayList<Player>();
-//            if (name == null)
-//                players.addAll(playerRepository.findAll());
-//            else
-//                players.addAll(playerRepository.findByNameContaining(name));
-//            if (players.isEmpty()) {
-//                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-//            }
-//            return new ResponseEntity<>(players, new HttpHeaders(), HttpStatus.OK);
-//        } catch (Exception e) {
-//            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-//        }
-//    }
 
 
     @GetMapping("/count")
