@@ -72,11 +72,18 @@ public class PlayersController {
     }
 
 
+   
     @GetMapping("/count")
     public long getCount() {
         return playersService.count();
     }
 
+    
+     @GetMapping("")
+    public ResponseEntity<Page<Player>> getPlayers(PlayerPage playerPage,
+                                                   PlayerSearchCriteria playerSearchCriteria) {
+        return new ResponseEntity<>(playersService.getPlayers(playerPage, playerSearchCriteria), HttpStatus.OK);
+    }
 
 //    @PostMapping("/")
 //    public void add(@RequestBody Player player) {
