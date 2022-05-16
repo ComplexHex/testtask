@@ -19,8 +19,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
-@RequestMapping(path = "/rest/players", produces = "application/json")
-@CrossOrigin(origins = "http://localhost:8080")
+@RequestMapping(path = "/rest/players")
 @RestController
 public class PlayersController {
     private PlayersService playersService;
