@@ -7,18 +7,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
+import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 @RequestMapping(path = "/rest/players")
@@ -35,34 +36,82 @@ public class PlayersController {
         this.playersService = playersService;
     }
 
-
     @GetMapping("")
-    public ResponseEntity<Map<String, Object>> getAllPlayers(
-            @RequestParam(required = false) String name,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "3") int size,
-            HttpServletRequest request) {
-        try {
-            List<Player> players = new ArrayList<>();
-            Pageable paging = PageRequest.of(page, size);
+    public ResponseEntity<Page<Player>> getAllPlayers(
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) {
+        System.out.println(request.getQueryString());
+        System.out.println(response.getStatus());
 
-            String uri = request.getQueryString();
-            System.out.println(uri);
+//        "&pageNumber=0&pageSize=3&order=EXPERIENCE";
+        String uri = request.getQueryString();
+        System.out.println(uri);
 
-            Page<Player> pagePlayers;
-            if (name == null) {
-                pagePlayers = playerRepository.findAll(paging);
-            } else pagePlayers = playerRepository.findByNameContaining(name, paging);
-            players = pagePlayers.getContent();
-            Map<String, Object> response = new HashMap<>();
-            response.put("players", players);
-            response.put("currentPage", page);
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        Pattern pat = Pattern.compile("([^&=]+)=([^&]*)");
+        Matcher matcher = pat.matcher(uri);
+        Map<String, String> map = new HashMap<>();
+        while (matcher.find()) {
+            map.put(matcher.group(1), matcher.group(2));
         }
 
+
+        String order = map.get("order");
+        int pageNumber = Integer.parseInt(map.get("pageNumber"));
+        int pageSize = Integer.parseInt(map.get("pageSize"));
+        String sortBy="id";
+
+        if ( order.equals("ID")) {
+            sortBy = "id";
+        }
+        if (order.equals("NAME")) {
+            sortBy = "name";
+        }
+        if (order.equals("EXPERIENCE")) {
+            sortBy = "experience";
+        }
+        if (order.equals("BIRTHDAY")) {
+            sortBy = "birthday";
+        }
+
+        System.out.println(order);
+        System.out.println(pageNumber);
+        System.out.println(pageSize);
+
+        Pageable paging = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy));
+        Page<Player> pagedResult = playerRepository.findAll(paging);
+        return new ResponseEntity(pagedResult.getContent(), HttpStatus.OK);
     }
+//
+//    @GetMapping("")
+////    public ResponseEntity<Map<String, Object>> getAllPlayers(
+//    public ResponseEntity<List<Player>> getAllPlayers(
+//
+//            @RequestParam(defaultValue = "0") int page,
+//            @RequestParam(defaultValue = "3") int size,
+//            @RequestParam(defaultValue = "id", required = false) String sortBy,
+//            HttpServletRequest request) {
+//        try {
+//            List<Player> players = new ArrayList<>();
+//            Pageable paging = PageRequest.of(page, size,  Sort.by(sortBy));
+//
+//            String uri = request.getQueryString();
+//            System.out.println(uri);
+//
+//            Page<Player> pagePlayers;
+////            if (name == null) {
+//                pagePlayers = playerRepository.findAll(paging);
+////            } else pagePlayers = playerRepository.findByNameContaining(name, paging);
+//            players = pagePlayers.getContent();
+//            Map<String, Object> response = new HashMap<>();
+//            response.put("", players);
+//
+//            return new ResponseEntity<List<Player>>(players, HttpStatus.OK);
+//        } catch (Exception e) {
+//            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//
+//    }
 
 
 //    @GetMapping("")
