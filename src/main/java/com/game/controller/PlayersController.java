@@ -48,18 +48,11 @@ public class PlayersController {
         String uri = request.getQueryString();
         System.out.println(uri);
 
-        Pattern pat = Pattern.compile("([^&=]+)=([^&]*)");
-        Matcher matcher = pat.matcher(uri);
-        Map<String, String> map = new HashMap<>();
-        while (matcher.find()) {
-            map.put(matcher.group(1), matcher.group(2));
-        }
-
-
-        String order = map.get("order");
-        int pageNumber = Integer.parseInt(map.get("pageNumber"));
-        int pageSize = Integer.parseInt(map.get("pageSize"));
-        String sortBy="id";
+        String order = request.getParameter("order");
+        int pageNumber = Integer.parseInt(request.getParameter("pageNumber"));
+        int pageSize = Integer.parseInt(request.getParameter("pageSize"));
+        boolean banned = Boolean.getBoolean(request.getParameter("banned"));
+        String sortBy = "id";
 
         if ( order.equals("ID")) {
             sortBy = "id";
