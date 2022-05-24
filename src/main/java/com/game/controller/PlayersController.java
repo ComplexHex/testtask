@@ -75,6 +75,8 @@ public class PlayersController {
         Page<Player> pagedResult = playerRepository.findAll(paging);
         return new ResponseEntity(pagedResult.getContent(), HttpStatus.OK);
     }
+    
+   // will write some code
 //
 //    @GetMapping("")
 ////    public ResponseEntity<Map<String, Object>> getAllPlayers(
