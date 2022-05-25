@@ -76,7 +76,7 @@ public class PlayersController {
         return new ResponseEntity(pagedResult.getContent(), HttpStatus.OK);
     }
     
-   // will write some code
+   // will write some code with criteria
 //
 //    @GetMapping("")
 ////    public ResponseEntity<Map<String, Object>> getAllPlayers(
